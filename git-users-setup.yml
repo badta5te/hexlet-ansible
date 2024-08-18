@@ -1,0 +1,46 @@
+- name: Setup workstation
+  hosts: hexlet
+  become: yes
+
+  vars:
+    users:
+      - { name: arya, email: 'arya@test.com' }
+      - { name: sansa, email: 'sansaa@test.com' }
+      - { name: tirion, email: 'tirion@test.com' }
+
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name: git
+        state: present
+
+    - name: Create users
+      user:
+        name: "{{ item.name }}"
+        state: present
+      loop: "{{ users }}"
+      tags: users
+    
+    - name: Create gitconfigs
+      loop: "{{ users }}"
+      template:
+        src: templates/.gitconfig.j2
+        dest: "/home/{{item.name}}/.gitconfig"
+
+    - name: Create ssh dir
+      loop: "{{ users }}"
+      file:
+        path: "/home/{{item.name}}/.ssh/"
+        state: directory
+      tags: ssh
+
+    - name: Copy pub key
+      loop: "{{ users }}"
+      copy:
+        src: files/ed25519.pub
+        dest: "/home/{{item.name}}/.ssh/authorized_keys"
+      tags: ssh

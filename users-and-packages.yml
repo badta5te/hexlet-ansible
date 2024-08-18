@@ -21,9 +21,11 @@
       apt:
         name: "{{ packages }}"
         state: present
+        tags: packages
 
     - name: Create users
       user:
         name: "{{ item }}"
         state: present
       loop: "{{ users }}"
+      tags: users

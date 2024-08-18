@@ -1,0 +1,25 @@
+- name: Deploy nginx
+  hosts: hexlet
+  become: yes
+
+  tasks:
+    - name: install nginx
+      ansible.builtin.apt:
+        name: nginx
+        state: latest
+    - name: copy index.html
+      copy:
+        src: files/index.html
+        dest: /usr/share/nginx/html/index.html
+    - name: copy config file
+      copy:
+        src: files/nginx/nginx.conf
+        dest: /etc/nginx/nginx.conf
+      notify:
+        - restart nginx
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: reloaded

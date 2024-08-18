@@ -1,0 +1,29 @@
+- name: Setup workstation
+  hosts: hexlet
+  become: yes
+
+  vars:
+    packages:
+      - git
+      - make
+      - nodejs
+    users:
+      - arya
+      - sansa
+      - tirion
+
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name: "{{ packages }}"
+        state: present
+
+    - name: Create users
+      user:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ users }}"

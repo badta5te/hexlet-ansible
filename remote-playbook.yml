@@ -1,0 +1,63 @@
+- name: Setup remote workstation
+  hosts: hexlet
+  become: yes
+
+  vars:
+    packages:
+      - git
+      - make
+      - nodejs
+    users:
+      - { name: pavel, email: 'badta5te@hey.com' }
+      - { name: arya, email: 'arya@test.com' }
+      - { name: sansa, email: 'sansaa@test.com' }
+      - { name: tirion, email: 'tirion@test.com' }
+
+  roles:
+    - role: geerlingguy.ruby
+      vars:
+        ruby_version: 3.2.0
+    - role: nickjj.docker
+      vars:
+        docker__state: "present"
+        docker__compose_v2_version: ""
+
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name: "{{ packages }}"
+        state: present
+
+    - name: Create users
+      user:
+        name: "{{ item.name }}"
+        state: present
+      loop: "{{ users }}"
+      tags: users
+
+      
+    - name: Create gitconfigs
+      loop: "{{ users }}"
+      template:
+        src: templates/.gitconfig.j2
+        dest: "/home/{{item.name}}/.gitconfig"
+      tags: git
+
+    - name: Create ssh dir
+      loop: "{{ users }}"
+      file:
+        path: "/home/{{item.name}}/.ssh/"
+        state: directory
+      tags: ssh
+
+    - name: Copy pub key
+      loop: "{{ users }}"
+      copy:
+        src: files/ed25519.pub
+        dest: "/home/{{item.name}}/.ssh/authorized_keys"
+      tags: ssh
+
